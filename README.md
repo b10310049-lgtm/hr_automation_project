@@ -1,289 +1,156 @@
-# 人資面試排程系統 (NTU PBC HR Interview Scheduling System)
+這份檔案是你們整個專案的 **`README.md`（專案說明書 / 使用手冊）**。
 
-## 🌐 線上試用
+客觀且誠實地告訴你：**這份檔案不僅絕對不能刪，它還是你 GitHub 倉庫裡最重要的一面「門面」！** 因為任何人（包含英國碩士的審查委員、教授）點進你的 GitHub 網頁時，GitHub 會自動把這份檔案渲染成你們專案的主頁。一份寫得詳細、專業的 `README.md`，能直接決定外人對你這個專案的第一技術印象。
 
-👉 **[點擊這裡試用系統](https://interview-scheduling-system.streamlit.app)**
+針對這份說明書，我幫你進行了嚴謹的「產品經理級審查（PM Review）」。為了完美對齊我們這幾天對系統做出的**巨大升級（引入 AI 評分、最後異動時間、漏斗戰情室、已錄取狀態）**，這份 `README.md` **必須立刻進行大更新**，否則會跟你們現在強大的程式碼完全脫節。
 
-> ⚠️ 線上版本為演示用途，可查看可用時段。Google Calendar 同步功能需要本地部署並配置 Google OAuth 凭證。詳見 [部署指南](DEPLOYMENT_GUIDE.md)。
-
----
-
-## 📋 專案概述
-
-一個完整的 HR 面試排程解決方案，整合 Google Calendar、智能算法和 Streamlit 前端，自動化管理主管檔期和應聘者預約流程。
-
-### 核心功能
-- ✅ 自動讀取主管 Google Calendar 忙碌時段
-- ✅ 智能計算可用面試時段（1小時/場，15分鐘緩衝）
-- ✅ 應聘者線上選擇面試時間
-- ✅ 自動建立 Google Calendar 邀請並通知主管
-- ✅ 防止雙重預約，確保時段衝突檢測
-- ✅ 持久化預約記錄
+以下是幫你全面翻新、注入 **AI（Gemini 2.5）與 People Analytics 靈魂** 的完整版 `README.md`。請直接全選並覆蓋你原本的檔案：
 
 ---
 
-## 📁 專案結構
+### 📝 翻新後的完整版 `README.md`（請全選複製）
 
-```
-期末專案/
-├── Calendar_FreeTime_Picker.py      # 獲取主管日曆忙碌時段
-├── project演算法_最終版.py          # 核心排程算法
-├── calendar_sync.py                  # Google Calendar 事件建立模組
-├── streamlit_app.py                  # 應聘者預約前端
-├── clear_calendar_events.py          # 測試工具：批量清除日曆事件
-├── credentials.json                  # Google OAuth 身分證（需自行配置）
-├── token.json                        # Google 授權通行證（自動生成）
-├── calendar_output.json              # 主管忙碌時段資料（自動生成）
-├── bookings.json                     # 預約記錄（自動生成）
-└── README.md                         # 本檔案
-```
+```markdown
+# 👔 組織行為與資料決策：AI 驅動型自動化 ATS 招募系統與人資排程戰情室
+*(NTU PBC AI-Driven Applicant Tracking System & HR Analytics Dashboard)*
+
+## 🌐 系統三大核心模組展示
+
+本系統全面採取「前後端分離」與「雲端大腦」的企業級軟體架構建置，包含以下三大獨立運作之模組：
+
+1. **🤖 AI 自動化招募大腦 (`main.py`)**：負責讀取應徵者 PDF 履歷、調用 **Gemini 2.5 Flash** 進行硬實力一票否決與薪資預算防呆評分，並觸發 48 小時自動化分流發信。
+2. **📅 應徵者自主面試預約系統 (`streamlit_app.py`)**：[Port 8501] 自動串接主管 Google Calendar，計算 15 分鐘緩衝期之空檔，供高分候選人線上自主排程並動態生成 Google Meet 會議。
+3. **📊 HR 招募決策戰情室 (`dashboard.py`)**：[Port 8502] 提供即時資料庫群像分析、**招募漏斗（Recruitment Funnel）轉換率**、以及市場核心技能供需排行地圖（Skills Inventory）。
 
 ---
 
-## 🚀 快速開始
+## 📋 專案概述與商業價值
 
-### 1️⃣ 環境準備
+在現代人力資源管理（HRIS）與人才數據分析（People Analytics）中，招募漏斗的轉換效率與薪資市場定位是企業組織行為的核心決策依據。
 
-#### 安裝依賴
-```bash
-pip install streamlit google-auth-oauthlib google-auth-httplib2 google-api-python-client
+本專案針對傳統招募痛點，開發出端到端的自動化流。透過將「薪資預算」與「核心技術框架」納入 AI 評分權重，並即時動態追蹤**求職者最後異動時間（`action_at`）**，協助企業高層一眼看出招募瓶頸（例如：薪資開太低導致優質即戰力嚴重流失），達成真正數據驅動（Data-Driven）的組織管理決策。
+
+---
+
+## 📁 完整專案結構
+
+
 ```
 
-#### 配置 Google API
-1. 前往 [Google Cloud Console](https://console.cloud.google.com/)
-2. 建立新專案
-3. 啟用 **Google Calendar API**
-4. 建立 **OAuth 2.0 客戶端 ID**（應用程式類型：桌面應用程式）
-5. 下載 JSON 金鑰，保存為 `credentials.json` 到本目錄
+hr_automation_project/
+├── main.py                          # 🤖 核心大腦：AI 履歷分析、評分與自動化郵件分流
+├── streamlit_app.py                 # 📅 前端網頁：應徵者自主預約面試與 Meet 連結生成
+├── dashboard.py                     # 📊 後台網頁：HR 招募戰情室、漏斗轉換率與技能橫條圖
+├── calendar_picker.py               # 📡 背景服務：自動向 Google API 請求主管日曆 busy 區間
+├── calendar_sync.py                 # 🔗 日曆模組：負責建立/刪除 Google Calendar 與 Meet 事件
+├── calendar_clear.py                # 🧹 測試工具：資安防呆！一鍵批量清除日曆上所有測試面試
+├── jd.txt                           # 📄 職缺說明：Python 後端開發工程師的必備與加分條件
+├── resumes/                         # 📥 履歷資料夾：存放待分析的應徵者 PDF 履歷
+├── credentials.json.example         # 🛡️ 資安範本：提供給他人的 Google OAuth 憑證填寫範本
+└── README.md                        # 📝 本檔案：專案軟體架構與部署說明書
 
-### 2️⃣ 工作流程
-
-#### 步驟 1：獲取主管日曆
-```bash
-python Calendar_FreeTime_Picker.py
 ```
-- 首次執行會開啟瀏覽器進行 Google OAuth 認證
-- 自動查詢兩位主管未來 3 週的忙碌時段
-- 輸出結果到 `calendar_output.json`
 
-#### 步驟 2：啟動應聘者預約系統
+> ⚠️ **資安防護規範 (Data Privacy)**：本專案已嚴格配置 `.gitignore` 機制。真實的連線憑證（`credentials.json`、`token.json`）、雲端暫存檔（`calendar_output.json`、`bookings.json`）皆安全隔離於本地伺服器，切勿推上 GitHub 倉庫。
+
+---
+
+## 🚀 快速開始與本地部署
+
+### 1️⃣ 環境準備與套件安裝
+
+請打開終端機，一鍵安裝本系統所需之所有現代化資料科學與 API 聯絡套件：
 ```bash
+pip install streamlit pandas plotly pypdf pdfplumber gspread yagmail google-genai google-api-python-client google-auth-oauthlib
+
+```
+
+### 2️⃣ 快速上手三步驟
+
+#### 步驟 1：配置金鑰與範本
+
+* 將專案中的 `credentials.json.example` 複製一份，重新命名為 `credentials.json`，並填入您從 Google Cloud Console 申請的桌面版 OAuth 憑證。
+* 打開 `main.py` 與 `streamlit_app.py`，於最上方環境參數區填入您的 Gemini API Key 與 Gmail 應用程式密碼。
+
+#### 步驟 2：獲取主管日曆與啟動大腦
+
+```bash
+# 1. 抓取兩位用人主管未來 3 週的忙碌時段
+python calendar_picker.py
+
+# 2. 啟動 AI 招募核心（選項 1 解析履歷；選項 2 自動分流寄發面邀或感謝信）
+python main.py
+
+```
+
+#### 步驟 3：雙開終端機啟動 HR 雙網頁系統
+
+打開兩個獨立的終端機視窗，分別切換至本目錄執行以下指令：
+
+```bash
+# 視窗 A：啟動「應徵者預約系統」
 streamlit run streamlit_app.py
-```
-- 瀏覽器自動打開 `http://localhost:8501`
-- 應聘者選擇可用時段進行預約
-- 預約成功後自動建立 Google Calendar 邀請
 
-#### 步驟 3（可選）：命令行版本算法演示
-```bash
-python project演算法_最終版.py
-```
-- 純命令行介面，用於測試或批量處理
-- 讀取 `calendar_output.json`
-- 手動輸入應聘者名字和選擇時間
+# 視窗 B：強制指定 Port 8502 啟動「HR 招募戰情室」
+streamlit run dashboard.py --server.port 8502
 
----
-
-## 🔧 各模組詳解
-
-### `Calendar_FreeTime_Picker.py`
-**功能**：自動獲取主管日曆資訊
-
-**輸入**：
-- `target_emails`: 主管 Google 帳號列表
-
-**處理過程**：
-1. 呼叫 Google Calendar API（`events().list()`）
-2. 篩選已確認的忙碌事件
-3. 轉換 UTC 時間 → 台灣時間（GMT+8）
-4. 排除週末（只保留週一至週五）
-
-**輸出**：`calendar_output.json`
-```json
-{
-  "b10310038@g.ntu.edu.tw": [
-    {
-      "start": "2026-05-20T14:00:00",
-      "end": "2026-05-20T15:00:00",
-      "timezone": "GMT+8"
-    }
-  ],
-  "b10310049@g.ntu.edu.tw": [...]
-}
-```
-
-### `project演算法_最終版.py`
-**功能**：計算可預約的面試時段
-
-**核心邏輯**：
-1. **掃描日期**：遍歷所有工作日
-2. **掃描時間**：15分鐘間隔掃描（9:00-12:00 和 13:00-18:00）
-3. **驗證可用性**：
-   - ✅ 申請時間 + 前後各15分鐘都要主管空閒
-   - ✅ 必須在工作時間內
-   - ✅ 不能與已預約時段衝突（含緩衝區）
-
-**時段篩選**：
-- 只顯示30分鐘倍數的時段（如 10:00、10:30、11:00）
-- 實際掃描仍是15分鐘間隔，但展示給使用者時過濾
-
-### `calendar_sync.py`
-**功能**：建立 Google Calendar 邀請事件
-
-**函數**：
-- `create_interview_event(applicant_name, date_str, time_range)`
-  - 建立面試事件
-  - 邀請兩位主管
-  - 設定30分鐘提醒
-  - 返回事件 ID
-
-- `delete_interview_event(event_id)`
-  - 刪除指定事件（取消預約時使用）
-
-### `streamlit_app.py`
-**功能**：應聘者線上預約前端
-
-**UI 元素**：
-- 📅 按日期分組顯示可用時段
-- ⏰ 時間方塊（點擊選擇）
-- ✨ 金色高亮（已選擇）
-- ✅ 確認預約按鈕
-
-**技術細節**：
-- 使用 Streamlit Session State 管理狀態
-- JSON 檔案持久化預約記錄
-- 自動衝突檢測（新預約 vs 既有預約 + 緩衝區）
-
-### `clear_calendar_events.py`（測試工具）
-**功能**：批量刪除 Google Calendar 上的所有面試事件
-
-**使用**：
-```bash
-python clear_calendar_events.py
-```
-- 搜尋所有標題含「【面試】」的事件
-- 列出後要求確認
-- 輸入 `yes` 確認刪除
-
----
-
-## 📊 時間計算邏輯
-
-### 工作時間設定
-```
-上午：09:00 - 12:00
-下午：13:00 - 18:00
-```
-
-### 緩衝時間
-```
-每場面試 1 小時
-前後各預留 15 分鐘緩衝
-→ 實際佔用時間 = 申請時間 ± 15 分鐘
-```
-
-### 例子
-如果應聘者選擇 **10:15-11:15**：
-- 申請面試時間：10:15 ~ 11:15
-- 實際預留時間：10:00 ~ 11:30
-- 這段時間內主管不能有其他會議
-
----
-
-## 🔐 資料儲存
-
-| 檔案 | 內容 | 自動生成 |
-|------|------|---------|
-| `credentials.json` | Google OAuth 身分證 | ❌ 需手動配置 |
-| `token.json` | 授權通行證 | ✅ 首次認證後自動生成 |
-| `calendar_output.json` | 主管忙碌時段 | ✅ 執行 Picker 後生成 |
-| `bookings.json` | 預約記錄 | ✅ Streamlit 預約後生成 |
-
----
-
-## ⚙️ 組員接手指南
-
-### 新組員上手步驟
-1. Clone 本倉庫
-2. 在 Google Cloud Console 建立自己的 OAuth 金鑰（`credentials.json`）
-3. 安裝依賴：`pip install -r requirements.txt`
-4. 依流程執行（Calendar Picker → Streamlit App）
-
-### 修改 Google 帳號
-編輯以下檔案中的帳號列表：
-- `Calendar_FreeTime_Picker.py` 第 186 行
-- `calendar_sync.py` 第 21-24 行
-
-### 修改工作時間
-編輯各檔案中的 `WORK_SESSIONS` 或 `WORK_START/END`：
-- `project演算法_最終版.py` 第 24 行
-- `streamlit_app.py` 第 29 行
-
-### 修改緩衝時間
-編輯 `BUFFER` 變數：
-```python
-BUFFER = timedelta(minutes=15)  # 改為其他分鐘數
 ```
 
 ---
 
-## 🐛 常見問題
+## 📊 數據驅動招募演算法邏輯
 
-### Q: 執行時出現「找不到 credentials.json」
-**A**：需要在 Google Cloud Console 建立 OAuth 金鑰，詳見「環境準備」段落
+### 💯 AI 嚴格評分機制（滿分 100 分）
 
-### Q: Google Calendar 邀請發不出去
-**A**：檢查 `token.json` 是否有正確的 `calendar` 寫入權限。刪除 `token.json` 重新認證
+* **技術框架一票否決**：應徵者必須熟練 `Flask / FastAPI / Django` 其中至少一種。若無相關經驗，不論學歷多高，總分最高鎖死於 **60 分** 以下，並觸發「AI評分完畢待發感謝信」緩衝狀態。
+* **薪資超標預算防呆**：本職缺月薪上限為 **NT$ 70,000**。若求職者期望薪資超出預算，AI 將在總分直接**重扣 15 分**，並於評分原因中註明。
 
-### Q: 預約後沒有出現在 Google Calendar
-**A**：檢查是否同時執行多個 Python 程序，可能導致認證衝突
+### 🔄 動態內部追蹤機制 (`action_at`)
 
-### Q: 想清除測試時產生的日曆事件
-**A**：執行 `python clear_calendar_events.py`
+為確保 HR 部門之招募服務水準（SLA），系統不單記錄投遞時間（`applied_at`），更在以下三大節點自動連動 `action_at`：
 
----
-
-## 📝 開發筆記
-
-### 關鍵設計決策
-
-**1. 為什麼用 15 分鐘掃描但只顯示 30 分鐘倍數？**
-- 15分鐘掃描提升精度，避免遺漏可用時段
-- 30分鐘倍數的顯示習慣符合一般人類思維
-
-**2. 為什麼要實作雙重衝突檢測？**
-- 第一層：vs 主管忙碌時段（含緩衝）
-- 第二層：vs 已預約的面試（含緩衝）
-- 兩層都過才能預約
-
-**3. 為什麼分離 calendar_sync.py？**
-- 命令行版本可獨立運作
-- 便於日後擴展（如整合其他日曆系統）
-- 模組化設計便於測試
+1. **AI 評分完畢** ➔ 寫入初始時間。
+2. **主管核准/自動攔截寄信** ➔ 押上最後寄發面邀/感謝信時間。
+3. **求職者線上預約完成** ➔ 應徵者點擊確認當下，Streamlit 自動將 `action_at` 更新為最新時間，完成無縫查核追蹤。
 
 ---
 
-## 🎯 未來優化方向
+## 🔐 下拉式選單狀態機（Status Machine）
 
-- [ ] 支援多主管不同時區
-- [ ] 應聘者郵件通知
-- [ ] 預約修改/取消功能
-- [ ] 預約統計儀表板
-- [ ] 資料庫持久化（取代 JSON）
-- [ ] 行動裝置友善設計
+為了防範髒數據（Garbage In, Garbage Out）破壞戰情室分析，Google Sheets 上的 `status` 欄位強烈建議採用「資料驗證」下拉式選單，系統嚴格依循以下狀態機流轉：
 
----
+```
+[新投遞 PDF] ➔ AI 自動評分 ➔ ⚖️ 分數分流：
+               ├── 分數 >= 60 ➔ 【AI評分完畢待主管審核】 ➔ 主管打勾 ➔ TRUE  ➔ 【已發面邀未回覆】➔ 應徵者填寫時間 ➔ 【面試排程已確認】 ➔ HR手動改錄取 ➔ 【已錄取】
+               │                                                    └── FALSE ➔ 【已發感謝信】
+               └── 分數 < 60  ➔ 【AI評分完畢待發感謝信】 ➔ 靜置滿 48 小時 ➔ 【已發感謝信】
 
-## 📞 技術支援
+```
 
-遇到問題？檢查清單：
-1. Google API 是否已啟用？
-2. `credentials.json` 是否正確配置？
-3. 依賴套件是否已安裝？
-4. 是否有網路連線可連接 Google API？
+*註：若錄取人選放棄或接受其他 Offer，HR 可手動於下拉選單選取 `婉拒offer`。*
 
 ---
 
-**最後更新**：2026-05-17  
-**版本**：1.0  
-**作者**：NTU PBC HR Project Team
+## 📞 技術支援與常見問題排查
+
+1. **出現 `No access token in response` 錯誤？**
+* 原因：Google API 發生跨 Scope 的憑證 Token 暫存污染。
+* 解法：本系統已於 2026 優化版中導入 `with_scopes()` 憑證隔離機制。若測試期間仍遇到，請直接在終端機按下 `Ctrl + C` 關閉 Streamlit 並重新啟動，即可清空快取。
+
+
+2. **想要清空日曆上的大量測試行程？**
+* 直接執行 `python calendar_clear.py`，輸入 `yes` 即可一鍵秒殺所有含【面試】字樣的測試資料。
+
+
+
+---
+
+**最後更新**：2026-05-25
+
+**版本**：2.0 (AI & Analytics 旗艦升級版)
+
+**作者**：國立臺灣大學校學士《組織行為與資料決策》專案團隊
+
+```
+
+```
