@@ -14,8 +14,8 @@ from calendar_sync import create_interview_event
 
 # ==================== 🛠️ HRIS 核心環境參數設定區 ====================
 # 👇 填入你用來寄自動通知信的 Gmail 帳號與「應用程式密碼」
-SENDER_EMAIL = "harperchen118@gmail.com"  
-GMAIL_APP_PASSWORD = "wnpl iuzj mgso nsyq"  
+SENDER_EMAIL = ""  
+GMAIL_APP_PASSWORD = ""  
 # =================================================================
 
 # ========== 頁面配置 ==========
