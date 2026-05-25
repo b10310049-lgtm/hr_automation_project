@@ -1,0 +1,26 @@
+# Google OAuth 認證檔案（不應該上傳到 GitHub）
+credentials.json
+token.json
+
+# Python 快取
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# 預約記錄（敏感資訊）
+bookings.json
+
+# 日曆資料（臨時生成）
+# calendar_output.json  ← 允許上傳用於 Streamlit Cloud 部署
+
+# IDE 設定
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系統檔案
+.DS_Store
+Thumbs.db

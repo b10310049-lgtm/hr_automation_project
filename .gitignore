@@ -1,0 +1,19 @@
+# 隱藏 Google API 與 Gmail 認證私鑰
+creds.json
+credentials.json
+token.json
+calendar_output.json
+bookings.json
+
+# 隱藏 Python 虛擬環境與快取檔
+__pycache__/
+.pytest_cache/
+.streamlit/
+env/
+venv/
+.DS_Store
+
+# 隱藏測試用的模擬 candidate 資料
+mock_candidates.csv
+mock_50.tsv
+mock_50_v2.tsv
