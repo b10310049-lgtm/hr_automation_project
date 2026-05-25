@@ -1,5 +1,12 @@
+從你上傳的 GitHub 實體目錄截圖來看，有幾個技術細節和檔名跟先前草稿有些微落差（例如：多了一個第二輪面試的資料夾、有三個導引指南檔案，以及日曆 Picker 的大小寫不同）。
 
-### 📝 翻新後的完整版 `README.md`
+客觀來說，如果 README 中的目錄樹與真實倉庫對不起來，會給看代碼的教授或審查委員一種「專案缺乏維護」的印象。另外，既然你的專案裡有 `DEPLOYMENT_GUIDE.md` 等獨立檔案，README 的部署說明就可以簡化，將焦點完全釋放給 **AI 核心與組織行為決策故事**。
+
+以下是幫你對齊截圖檔案結構、**100% 仿真修復**後的終極版 `README.md`，請直接複製覆蓋：
+
+---
+
+### 📝 修正後的完整版 `README.md`
 
 ```markdown
 # 👔 組織行為與資料決策：AI 驅動型自動化 ATS 招募系統與人資排程戰情室
@@ -11,7 +18,7 @@
 
 1. **🤖 AI 自動化招募大腦 (`main.py`)**：負責讀取應徵者 PDF 履歷、調用 **Gemini 2.5 Flash** 進行硬實力一票否決與薪資預算防呆評分，並觸發 48 小時自動化分流發信。
 2. **📅 應徵者自主面試預約系統 (`streamlit_app.py`)**：[Port 8501] 自動串接主管 Google Calendar，計算 15 分鐘緩衝期之空檔，供高分候選人線上自主排程並動態生成 Google Meet 會議。
-3. **📊 HR 招募決策戰情室 (`dashboard.py`)**：[Port 8502] 提供即時資料庫群像分析、**招募漏斗（Recruitment Funnel）轉換率**、以及市場核心技能供需排行地圖（Skills Inventory）。
+3. **📊 HR 招募決策戰情室 (`dashboard.py`)**：[Port 8502] 提供即時資料庫群像分析、**招募漏斗（Recruitment Funnel）轉換率**，以及市場核心技能供需排行地圖（Skills Inventory）。
 
 ---
 
@@ -23,32 +30,26 @@
 
 ---
 
-## 📁 完整專案結構
+## 📁 實際專案結構 (Directory Tree)
 
 
 ```
 
 hr_automation_project/
-
-├── main.py                          # 🤖 核心大腦：AI 履歷分析、評分與自動化郵件分流
-
-├── streamlit_app.py                 # 📅 前端網頁：應徵者自主預約面試與 Meet 連結生成
-
-├── dashboard.py                     # 📊 後台網頁：HR 招募戰情室、漏斗轉換率與技能橫條圖
-
-├── calendar_picker.py               # 📡 背景服務：自動向 Google API 請求主管日曆 busy 區間
-
+├── resumes/                         # 📥 第一輪履歷資料夾：存放初篩的應徵者 PDF 履歷
+├── resumes_round2/                  # 👥 第二輪履歷資料夾：存放額外的應徵者檔案（if還有測試需求）
+├── .gitignore                       # 🛡️ 資安防護：指定 Git 忽略憑證與暫存檔之黑名單
+├── Calendar_BusyTime_Picker.py      # 📡 背景服務：自動向 Google API 請求主管日曆 busy 區間
 ├── calendar_sync.py                 # 🔗 日曆模組：負責建立/刪除 Google Calendar 與 Meet 事件
-
-├── calendar_clear.py                # 🧹 測試工具：資安防呆！一鍵批量清除日曆上所有測試面試
-
+├── clear_calendar_events.py         # 🧹 測試工具：一鍵批量清除日曆上所有測試面試行程
+├── dashboard.py                     # 📊 後台網頁：HR 招募戰情室、漏斗轉換率與技能橫條圖
 ├── jd.txt                           # 📄 職缺說明：Python 後端開發工程師的必備與加分條件
-
-├── resumes/                         # 📥 履歷資料夾：存放待分析的應徵者 PDF 履歷
-
-├── credentials.json.example         # 🛡️ 資安範本：提供給他人的 Google OAuth 憑證填寫範本
-
-└── README.md                        # 📝 本檔案：專案軟體架構與部署說明書
+├── main.py                          # 🤖 核心大腦：AI 履歷分析、評分與自動化郵件分流
+├── streamlit_app.py                 # 📅 前端網頁：應徵者自主預約面試與 Meet 連結生成
+├── requirements.txt                 # 🗂️ 套件清單：專案執行所需之依賴環境與版本鎖定
+├── DEPLOYMENT_GUIDE.md              # 🚀 部署指南：Google API 憑證申請與環境架設教學
+├── TEAM_COLLABORATION.md            # 🤝 團隊協作：專案分工與商管程式設計開發筆記
+└── UPLOAD_GUIDE.md                  # 📤 上傳指南：應徵者履歷大量匯入之操作手冊
 
 ```
 
@@ -62,31 +63,15 @@ hr_automation_project/
 
 請打開終端機，一鍵安裝本系統所需之所有現代化資料科學與 API 聯絡套件：
 ```bash
-pip install streamlit pandas plotly pypdf pdfplumber gspread yagmail google-genai google-api-python-client google-auth-oauthlib
+pip install -r requirements.txt
 
 ```
 
-### 2️⃣ 快速上手三步驟
+*(詳細的 Google Cloud Console 憑證申請與連線設定，請直接參閱專案內的 [DEPLOYMENT_GUIDE.md](https://www.google.com/search?q=DEPLOYMENT_GUIDE.md))*
 
-#### 步驟 1：配置金鑰與範本
+### 2️⃣ 雙開終端機啟動系統
 
-* 將專案中的 `credentials.json.example` 複製一份，重新命名為 `credentials.json`，並填入您從 Google Cloud Console 申請的桌面版 OAuth 憑證。
-* 打開 `main.py` 與 `streamlit_app.py`，於最上方環境參數區填入您的 Gemini API Key 與 Gmail 應用程式密碼。
-
-#### 步驟 2：獲取主管日曆與啟動大腦
-
-```bash
-# 1. 抓取兩位用人主管未來 3 週的忙碌時段
-python calendar_picker.py
-
-# 2. 啟動 AI 招募核心（選項 1 解析履歷；選項 2 自動分流寄發面邀或感謝信）
-python main.py
-
-```
-
-#### 步驟 3：雙開終端機啟動 HR 雙網頁系統
-
-打開兩個獨立的終端機視窗，分別切換至本目錄執行以下指令：
+確保資料夾內已有 `calendar_output.json` 後，打開兩個獨立的終端機視窗，分別切換至本目錄執行以下指令：
 
 ```bash
 # 視窗 A：啟動「應徵者預約系統」
@@ -140,7 +125,7 @@ streamlit run dashboard.py --server.port 8502
 
 
 2. **想要清空日曆上的大量測試行程？**
-* 直接執行 `python calendar_clear.py`，輸入 `yes` 即可一鍵秒殺所有含【面試】字樣的測試資料。
+* 直接執行 `python clear_calendar_events.py`，輸入 `yes` 即可一鍵秒殺所有含【面試】字樣的測試資料。
 
 
 
