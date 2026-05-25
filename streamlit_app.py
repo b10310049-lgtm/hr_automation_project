@@ -8,14 +8,14 @@ import json
 import os
 import gspread
 import yagmail
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from google.oauth2.service_account import Credentials
 from calendar_sync import create_interview_event
 
 # ==================== 🛠️ HRIS 核心環境參數設定區 ====================
 # 👇 實際部署時，請將金鑰放入環境變數中。本地測試請填入您的帳密（切勿推上 GitHub！）
-SENDER_EMAIL = "@gmail.com"  
-GMAIL_APP_PASSWORD = "你的gmail應用程式金鑰"  
+SENDER_EMAIL = "你要寄信的信箱"  
+GMAIL_APP_PASSWORD = "信箱的應用程式密碼16碼"  
 # =================================================================
 
 # ========== 頁面配置 ==========
@@ -111,13 +111,19 @@ def is_slot_available(date_str, time_str, booked_dict):
                 return False  
     return True  
 
-all_dates = set()
-for person_busy in data.values():
-    for item in person_busy:
-        all_dates.add(datetime.fromisoformat(item["start"]).date())
+# ==========================================
+# 🌟 邏輯優化核心：強制從「明天」開始生成未來 21 天的空檔
+# ==========================================
+tw_tz = timezone(timedelta(hours=8))
+# 取得台灣時間的「明天」日期
+tomorrow = (datetime.now(tw_tz) + timedelta(days=1)).date()
+
+# 直接生成未來 21 天的日期清單（不再依賴主管是否有行程來決定日期）
+all_dates = [tomorrow + timedelta(days=i) for i in range(21)]
 
 available = {}
-for date in sorted(all_dates):
+for date in all_dates:
+    # 依然保留只開放平日的邏輯
     if date.weekday() < 5:
         for work_start, work_end in WORK_SESSIONS:
             ws = datetime.combine(date, datetime.min.time().replace(hour=work_start))
@@ -169,7 +175,6 @@ else:
     # ========== 時段選擇頁面 ==========
     st.markdown("### 📝 應徵者身分登錄")
     
-    # 🌟 吸收優點一：從 URL 參數自動抓取姓名與信箱，無縫帶入表單預設值
     default_name = st.query_params.get("name", "")
     default_email = st.query_params.get("email", "")
 
@@ -225,7 +230,6 @@ else:
 
                     st.info("🔄 正在驗證您的應徵者身分，請稍候...")
                     
-                    # 🌟 吸收優點二：加入終端機日誌追蹤，大幅提升除錯能力
                     print(f"\n=============================================")
                     print(f"[系統日誌] 收到預約請求！")
                     print(f"[系統日誌] 應徵者：{applicant_name} ({applicant_email})")
