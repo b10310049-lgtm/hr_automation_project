@@ -36,20 +36,35 @@
 ```
 
 hr_automation_project/
+
 ├── resumes/                         # 📥 第一輪履歷資料夾：存放初篩的應徵者 PDF 履歷
+
 ├── resumes_round2/                  # 👥 第二輪履歷資料夾：存放額外的應徵者檔案（if還有測試需求）
+
 ├── .gitignore                       # 🛡️ 資安防護：指定 Git 忽略憑證與暫存檔之黑名單
+
 ├── Calendar_BusyTime_Picker.py      # 📡 背景服務：自動向 Google API 請求主管日曆 busy 區間
+
 ├── calendar_sync.py                 # 🔗 日曆模組：負責建立/刪除 Google Calendar 與 Meet 事件
+
 ├── clear_calendar_events.py         # 🧹 測試工具：一鍵批量清除日曆上所有測試面試行程
+
 ├── dashboard.py                     # 📊 後台網頁：HR 招募戰情室、漏斗轉換率與技能橫條圖
+
 ├── jd.txt                           # 📄 職缺說明：Python 後端開發工程師的必備與加分條件
+
 ├── main.py                          # 🤖 核心大腦：AI 履歷分析、評分與自動化郵件分流
+
 ├── streamlit_app.py                 # 📅 前端網頁：應徵者自主預約面試與 Meet 連結生成
+
 ├── requirements.txt                 # 🗂️ 套件清單：專案執行所需之依賴環境與版本鎖定
+
 ├── DEPLOYMENT_GUIDE.md              # 🚀 部署指南：Google API 憑證申請與環境架設教學
+
 ├── TEAM_COLLABORATION.md            # 🤝 團隊協作：專案分工與商管程式設計開發筆記
+
 └── UPLOAD_GUIDE.md                  # 📤 上傳指南：應徵者履歷大量匯入之操作手冊
+
 
 ```
 
