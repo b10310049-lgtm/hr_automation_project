@@ -29,15 +29,25 @@
 ```
 
 hr_automation_project/
+
 ├── main.py                          # 🤖 核心大腦：AI 履歷分析、評分與自動化郵件分流
+
 ├── streamlit_app.py                 # 📅 前端網頁：應徵者自主預約面試與 Meet 連結生成
+
 ├── dashboard.py                     # 📊 後台網頁：HR 招募戰情室、漏斗轉換率與技能橫條圖
+
 ├── calendar_picker.py               # 📡 背景服務：自動向 Google API 請求主管日曆 busy 區間
+
 ├── calendar_sync.py                 # 🔗 日曆模組：負責建立/刪除 Google Calendar 與 Meet 事件
+
 ├── calendar_clear.py                # 🧹 測試工具：資安防呆！一鍵批量清除日曆上所有測試面試
+
 ├── jd.txt                           # 📄 職缺說明：Python 後端開發工程師的必備與加分條件
+
 ├── resumes/                         # 📥 履歷資料夾：存放待分析的應徵者 PDF 履歷
+
 ├── credentials.json.example         # 🛡️ 資安範本：提供給他人的 Google OAuth 憑證填寫範本
+
 └── README.md                        # 📝 本檔案：專案軟體架構與部署說明書
 
 ```
