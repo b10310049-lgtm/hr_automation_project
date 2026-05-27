@@ -1,19 +1,38 @@
-# 隱藏 Google API 與 Gmail 認證私鑰
+# =========================================================
+# 🔴 絕對封鎖：Google API、Gmail 認證私鑰與敏感憑證
+# =========================================================
 creds.json
 credentials.json
 token.json
+.env
+.streamlit/secrets.toml
+
+# =========================================================
+# 🟡 策略封鎖：動態產出的測試資料與範本
+# (避免本機舊資料污染雲端，Streamlit 執行時會自動在記憶體或雲端生成)
+# =========================================================
 calendar_output.json
 bookings.json
+job_profiles.json
+mock_candidates.csv
+mock_50.tsv
+mock_50_v2.tsv
 
-# 隱藏 Python 虛擬環境與快取檔
+# =========================================================
+# ⚪ 系統、IDE、快取與環境檔 (防雜訊)
+# =========================================================
 __pycache__/
+*.pyc
+*.pyo
+*.egg-info/
 .pytest_cache/
 .streamlit/
 env/
 venv/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
-
-# 隱藏測試用的模擬 candidate 資料
-mock_candidates.csv
-mock_50.tsv
-mock_50_v2.tsv
+Thumbs.db

@@ -1,9 +1,21 @@
 import uuid
+import json
+import os
+import streamlit as st
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 
 def get_calendar_service():
-    return build('calendar', 'v3', credentials=Credentials.from_authorized_user_file('token.json'))
+    """優先讀取雲端 Secrets，找不到才讀本地 token.json"""
+    if "google_calendar_token" in st.secrets:
+        token_info = json.loads(st.secrets["google_calendar_token"])
+        creds = Credentials.from_authorized_user_info(token_info)
+    elif os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json')
+    else:
+        raise Exception("❌ 找不到 Google Calendar 授權 Token！")
+        
+    return build('calendar', 'v3', credentials=creds)
 
 def create_interview_event(applicant_name, applicant_email, date_str, start_time_str, end_time_str):
     """
@@ -12,7 +24,6 @@ def create_interview_event(applicant_name, applicant_email, date_str, start_time
     try:
         service = get_calendar_service()
         
-        # 確保格式純淨
         clean_date = date_str.strip()
         clean_start = start_time_str.strip()
         clean_end = end_time_str.strip()
@@ -23,9 +34,9 @@ def create_interview_event(applicant_name, applicant_email, date_str, start_time
         print(f"📡 正在向 Google 提交標準時間：{start_iso} 至 {end_iso}")
         
         attendees = [
-            {'email': 'b10310049@g.ntu.edu.tw'}, # 你（主管B）
-            {'email': 'b10310038@g.ntu.edu.tw'}, # 同學（主管A）
-            {'email': applicant_email.strip()}    # 應聘者本人
+            {'email': 'b10310049@g.ntu.edu.tw'}, 
+            {'email': 'b10310038@g.ntu.edu.tw'}, 
+            {'email': applicant_email.strip()}    
         ]
         
         event_body = {
@@ -37,7 +48,6 @@ def create_interview_event(applicant_name, applicant_email, date_str, start_time
             'conferenceData': {
                 'createRequest': {
                     'requestId': f"meet-{uuid.uuid4().hex[:8]}",
-                    # 🌟 核心修正：將 'addOnType' 改為 'hangoutsMeet'！這才是 Google Meet 的官方通關密碼
                     'conferenceSolutionKey': {'type': 'hangoutsMeet'},
                 }
             },
@@ -53,7 +63,6 @@ def create_interview_event(applicant_name, applicant_email, date_str, start_time
             conferenceDataVersion=1
         ).execute()
         
-        # 從 Google 回傳的複雜資料中，精確萃取藍色的 Google Meet 網址
         meet_link = ""
         conference_data = event.get('conferenceData', {})
         entry_points = conference_data.get('entryPoints', [])
@@ -62,7 +71,6 @@ def create_interview_event(applicant_name, applicant_email, date_str, start_time
                 meet_link = ep.get('uri', '')
                 break
                 
-        # 如果沒抓到 video 類型的網址，就拿第一個備用
         if not meet_link and entry_points:
             meet_link = entry_points[0].get('uri', '')
             
