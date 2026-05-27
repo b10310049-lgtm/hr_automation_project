@@ -1,6 +1,7 @@
 import datetime  
 import json      
 import os.path   
+import streamlit as st
 
 from google.auth.transport.requests import Request   
 from google.oauth2.credentials import Credentials      
@@ -16,25 +17,33 @@ OUTPUT_PATH = 'calendar_output.json'
 
 def get_calendar_service():
     creds = None  
-    if os.path.exists(TOKEN_PATH):
+    
+    # 優先讀取雲端 Secrets
+    if "google_calendar_token" in st.secrets:
+        token_info = json.loads(st.secrets["google_calendar_token"])
+        creds = Credentials.from_authorized_user_info(token_info, SCOPES)
+    # 本地備援讀取
+    elif os.path.exists(TOKEN_PATH):
         creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
         
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
+            # 雲端環境無法觸發瀏覽器登入，此處僅限本地開發時執行
             flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
             creds = flow.run_local_server(port=0)
             
-        with open(TOKEN_PATH, 'w') as token:
-            token.write(creds.to_json())
+        # 若在本地端執行，將刷新或新取得的憑證存下來
+        if "google_calendar_token" not in st.secrets:
+            with open(TOKEN_PATH, 'w') as token:
+                token.write(creds.to_json())
             
     return build('calendar', 'v3', credentials=creds)
 
 def fetch_and_save_calendar_data(emails, days_range=21):
     service = get_calendar_service()
 
-    # 🌟 修正：使用新版寫法，解決 utcnow 的 DeprecationWarning
     now_utc = datetime.datetime.now(datetime.timezone.utc)
     future_utc = now_utc + datetime.timedelta(days=days_range)
     time_min = now_utc.isoformat().replace('+00:00', 'Z')
@@ -62,7 +71,6 @@ def fetch_and_save_calendar_data(emails, days_range=21):
         filtered_busy = []
 
         for event in raw_events:
-            # 🌟 修復 1：只排除「已取消」的事件，保留 confirmed 和 tentative（暫定行程一樣會卡住時間）
             if event.get('status') == 'cancelled':
                 continue
 
@@ -76,8 +84,7 @@ def fetch_and_save_calendar_data(emails, days_range=21):
                 continue
 
             try:
-                # 🌟 修復 2：精準攔截「全天事件 (長度為 10)」與「一般事件」，解決時區位移問題
-                if len(start_raw) == 10:  # 格式為 YYYY-MM-DD
+                if len(start_raw) == 10:  
                     start_tw = datetime.datetime.strptime(start_raw, "%Y-%m-%d").replace(tzinfo=tw_tz)
                     end_tw = datetime.datetime.strptime(end_raw, "%Y-%m-%d").replace(tzinfo=tw_tz)
                 else:
@@ -92,8 +99,6 @@ def fetch_and_save_calendar_data(emails, days_range=21):
             except Exception as e:
                 continue
 
-            # 🌟 修復 3：拔除 weekday() < 5 的判斷！
-            # 所有抓到的忙碌行程（包含週末連假）通通如實寫入 JSON，平日篩選交給前端演算法負責防守。
             filtered_busy.append({
                 "start": start_tw.strftime('%Y-%m-%dT%H:%M:%S'),
                 "end": end_tw.strftime('%Y-%m-%dT%H:%M:%S'),
@@ -113,6 +118,5 @@ def fetch_and_save_calendar_data(emails, days_range=21):
     return processed_data 
 
 if __name__ == '__main__':
-    # 填入兩位主管的 NTU Google 帳號
     target_emails = ['b10310038@g.ntu.edu.tw', 'b10310049@g.ntu.edu.tw']
     final_result = fetch_and_save_calendar_data(target_emails)

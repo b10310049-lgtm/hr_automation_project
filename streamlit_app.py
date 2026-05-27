@@ -1,6 +1,6 @@
 """
 人資面試排程系統 - Streamlit 前端 (2026 正式上線優化版)
-包含：動態應徵者表單(支援URL自動帶入)、自動生成 Google Meet、即時防雙重預約、Google Sheets 雲端連動、yagmail 面試信發送、系統除錯日誌
+包含：動態應徵者表單(支援URL自動帶入)、自動生成 Google Meet、即時防雙重預約、Google Sheets 雲端連動、yagmail 面試信發送、動態日曆抓取
 """
 
 import streamlit as st
@@ -11,12 +11,7 @@ import yagmail
 from datetime import datetime, timedelta, timezone
 from google.oauth2.service_account import Credentials
 from calendar_sync import create_interview_event
-
-# ==================== 🛠️ HRIS 核心環境參數設定區 ====================
-# 👇 實際部署時，請將金鑰放入環境變數中。本地測試請填入您的帳密（切勿推上 GitHub！）
-SENDER_EMAIL = "你要寄信的信箱"  
-GMAIL_APP_PASSWORD = "信箱的應用程式密碼16碼"  
-# =================================================================
+from Calendar_BusyTime_Picker import fetch_and_save_calendar_data # 🌟 新增：導入動態抓取模組
 
 # ========== 頁面配置 ==========
 st.set_page_config(page_title="人資面試排程系統", layout="wide")
@@ -35,16 +30,21 @@ WORK_SESSIONS = [(9, 12), (13, 18)]
 BUFFER = timedelta(minutes=15)
 INTERVIEW_LEN = timedelta(hours=1)
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-json_path = os.path.join(script_dir, "calendar_output.json")
+# ==========================================
+# 🌟 雲端地雷 1 解除：動態抓取最新日曆資料 (快取 5 分鐘防 API 爆掉)
+# ==========================================
+@st.cache_data(ttl=300)
+def get_live_calendar_data():
+    target_emails = ['b10310038@g.ntu.edu.tw', 'b10310049@g.ntu.edu.tw']
+    try:
+        # 直接呼叫我們寫好的抓取功能，回傳最新 JSON dict
+        return fetch_and_save_calendar_data(target_emails)
+    except Exception as e:
+        st.error(f"❌ 無法獲取主管日曆，請稍後再試。({e})")
+        st.stop()
 
-try:
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-        print(f"[系統日誌] 成功讀取 calendar_output.json，包含 {len(data)} 位主管行程。")
-except FileNotFoundError:
-    st.error("❌ 找不到 calendar_output.json，請先執行 Calendar Picker 獲取主管日曆")
-    st.stop()
+with st.spinner("🔄 正在同步主管最新行事曆，請稍候..."):
+    data = get_live_calendar_data()
 
 emails = list(data.keys())
 if len(emails) < 2:
@@ -57,6 +57,7 @@ person2 = data[emails[1]]
 # 組合兩人所有的忙碌行程，完美防禦跨日事件
 busy_times_global = [(item["start"], item["end"]) for item in person1 + person2]
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
 booking_file = os.path.join(script_dir, "bookings.json")
 
 def load_bookings():
@@ -112,18 +113,14 @@ def is_slot_available(date_str, time_str, booked_dict):
     return True  
 
 # ==========================================
-# 🌟 邏輯優化核心：強制從「明天」開始生成未來 21 天的空檔
+# 強制從「明天」開始生成未來 21 天的空檔
 # ==========================================
 tw_tz = timezone(timedelta(hours=8))
-# 取得台灣時間的「明天」日期
 tomorrow = (datetime.now(tw_tz) + timedelta(days=1)).date()
-
-# 直接生成未來 21 天的日期清單（不再依賴主管是否有行程來決定日期）
 all_dates = [tomorrow + timedelta(days=i) for i in range(21)]
 
 available = {}
 for date in all_dates:
-    # 依然保留只開放平日的邏輯
     if date.weekday() < 5:
         for work_start, work_end in WORK_SESSIONS:
             ws = datetime.combine(date, datetime.min.time().replace(hour=work_start))
@@ -230,15 +227,19 @@ else:
 
                     st.info("🔄 正在驗證您的應徵者身分，請稍候...")
                     
-                    print(f"\n=============================================")
-                    print(f"[系統日誌] 收到預約請求！")
-                    print(f"[系統日誌] 應徵者：{applicant_name} ({applicant_email})")
-                    print(f"[系統日誌] 選擇時段：{date_str} {time_range}")
-                    
                     try:
                         print(f"[系統日誌] 正在連線 Google Sheets 進行身分驗證...")
                         SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-                        base_creds = Credentials.from_service_account_file("creds.json")
+                        
+                        # ==========================================
+                        # 🌟 雲端地雷 3 解除：Google Sheets 動態驗證
+                        # ==========================================
+                        if "gcp_service_account" in st.secrets:
+                            creds_info = json.loads(st.secrets["gcp_service_account"])
+                            base_creds = Credentials.from_service_account_info(creds_info)
+                        else:
+                            base_creds = Credentials.from_service_account_file("creds.json")
+                            
                         scoped_creds = base_creds.with_scopes(SCOPE)
                         gs_client = gspread.authorize(scoped_creds)
                         sheet = gs_client.open("HR後台_應徵者追蹤表").sheet1
@@ -252,24 +253,17 @@ else:
                                 break
                         
                         if not target_row_index:
-                            print(f"[系統警告] 身分驗證失敗！試算表查無此人，已自動攔截預約。")
                             st.error("🛑 身分驗證失敗！在招募系統中找不到符合此姓名與信箱的應徵資料。請檢查是否輸入錯誤，或確保你已通過初篩並收到面試邀約信。")
-                        
                         else:
-                            print(f"[系統日誌] 驗證成功！該應徵者位於資料表第 {target_row_index} 行。")
-                            
                             check_start_final = datetime.strptime(f"{date_str} {start_time}", '%Y-%m-%d %H:%M') - BUFFER
                             check_end_final = datetime.strptime(f"{date_str} {end_time}", '%Y-%m-%d %H:%M') + BUFFER
                             
                             if not is_slot_available(date_str, time_range, st.session_state.booked_global):
-                                print(f"[系統警告] 時段攔截！該時段已被其他人搶先預約。")
                                 st.error("🛑 預約失敗！該面試時段已被其他應徵者搶先預約了。請重新選擇其他時段！")
                             elif is_busy(check_start_final, check_end_final, busy_times_global):
-                                print(f"[系統警告] 時段攔截！主管在該時段已有新行程覆蓋。")
                                 st.error("🛑 預約失敗！主管在該時段的行程發生異動。請重新選擇其他時段！")
                             else:
                                 st.success("🎉 身分驗證成功且時段確認空閒！正在為您建立 Google Calendar 面試活動...")
-                                print(f"[系統日誌] 正在呼叫 calendar_sync.py 建立 Google 日曆行程...")
                                 
                                 event_id, google_meet_url = create_interview_event(
                                     applicant_name, applicant_email, 
@@ -277,13 +271,10 @@ else:
                                 )
                                 
                                 if event_id:
-                                    print(f"[系統日誌] 日曆行程建立成功！Meet 連結: {google_meet_url}")
-                                    
                                     slot_key = str((date_str, time_range))
                                     st.session_state.booked_global[slot_key] = applicant_name
                                     save_bookings(st.session_state.booked_global)
 
-                                    print(f"[系統日誌] 正在同步資料回 Google Sheets...")
                                     sheet.update_cell(target_row_index, 1, "面試排程已確認")  
                                     current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M")
                                     sheet.update_cell(target_row_index, 9, current_time_str)
@@ -292,9 +283,14 @@ else:
                                 
                                     st.info("✉️ 正在向您的信箱發送面試確認通知信...")
                                     
-                                    if SENDER_EMAIL != "YOUR_EMAIL@gmail.com" and GMAIL_APP_PASSWORD != "YOUR_16_DIGIT_PASSWORD":
-                                        print(f"[系統日誌] 正在呼叫 Yagmail 發送確認信給 {applicant_email}...")
+                                    # ==========================================
+                                    # 🌟 雲端地雷 2 解除：Email 帳密改走 Secrets
+                                    # ==========================================
+                                    try:
+                                        SENDER_EMAIL = st.secrets["SENDER_EMAIL"]
+                                        GMAIL_APP_PASSWORD = st.secrets["GMAIL_APP_PASSWORD"]
                                         yag = yagmail.SMTP(user=SENDER_EMAIL, password=GMAIL_APP_PASSWORD)
+                                        
                                         subject = f"【面試確認】商管程式設計 -「{applicant_name}」技術面試預約成功通知"
                                         body = f"""{applicant_name} 您好：
 
@@ -313,20 +309,17 @@ else:
 商管程式設計股份有限公司 招募團隊 敬上
 """
                                         yag.send(to=applicant_email, subject=subject, contents=body)
-                                        print(f"[系統日誌] 郵件發送完成！整個預約流程完美落幕。")
-                                        print(f"=============================================\n")
+                                    except Exception as email_err:
+                                        st.warning(f"面試已成立，但確認信發送失敗：{email_err}")
                                     
                                     st.session_state.confirmed = True
                                     st.session_state.confirmed_info = (date_str, time_range)
                                     st.session_state.meet_link = google_meet_url
                                     st.rerun()  
                                 else:
-                                    print(f"[系統錯誤] 呼叫 Google Calendar API 失敗。")
                                     st.error("發生了預期外的狀況，請稍後再試。")
                     except Exception as e:
-                        print(f"\n[系統崩潰] 預期外錯誤發生：{e}")
-                        print(f"=============================================\n")
-                        st.error("發生了預期外的狀況，請稍後再試。")
+                        st.error(f"發生了預期外的狀況，請稍後再試：{e}")
 
     else:
         st.info("近期面試排程較緊湊，目前可選時段皆額滿，請直接致電人資部預約面試：0911-111-111")
