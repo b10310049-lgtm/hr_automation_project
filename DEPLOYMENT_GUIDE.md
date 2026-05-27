@@ -1,312 +1,116 @@
-# Streamlit Cloud 部署指南
+### 🚀 翻新後的完整版 `DEPLOYMENT_GUIDE.md`
 
-本文檔說明如何將應用部署到 Streamlit Cloud，並詳細解釋效果和限制。
+```markdown
+# ⚙️ AI 全自動化招募系統與戰情室：本地部署與實戰操作指南
+*(NTU PBC HRIS & People Analytics App - End-to-End Execution Guide)*
 
----
-
-## 📌 快速摘要
-
-| 項目 | 本地運行 | Streamlit Cloud |
-|------|---------|-----------------|
-| 成本 | 免費 | 免費 |
-| 網址 | 無（localhost:8501） | ✅ 有公開網址 |
-| Google Calendar 同步 | ✅ 完全可用 | ⚠️ 需配置 Secrets |
-| 啟動速度 | 快 | 較慢（15-30秒） |
-| 代碼更新 | 手動重啟 | 自動重新部署 |
+本文件專為專案團隊組員、評審教授與接手工程師設計。本專案採用「前後端解耦（Decoupled）」與「雙網頁並行」架構。請依循本指南之鐵路時刻表順序執行，即可在本地端完美重現整套 AI 招募與數據分析閉環。
 
 ---
 
-## 🚀 部署步驟（5 分鐘）
+## 📋 運行環境要求與套件安裝
 
-### 步驟 1：準備 GitHub 倉庫
-
-確保你的代碼已推送到 GitHub：
+本專案採用相對路徑設計，具備極高的環境可移植性。請在執行前確保電腦已安裝 Python 3.9+，並於終端機（Terminal）一鍵安裝所有現代化依賴套件：
 
 ```bash
-# 檢查倉庫狀態
-git status
-
-# 如果有改動，推送
-git add .
-git commit -m "Prepare for Streamlit Cloud deployment"
-git push
-```
-
-**必須有的檔案：**
-- ✅ `streamlit_app.py`
-- ✅ `requirements.txt`
-- ✅ `calendar_sync.py`
-- ✅ `calendar_output.json`
-
-**不應有的敏感檔案：**
-- ❌ `credentials.json`
-- ❌ `token.json`
-- （被 `.gitignore` 自動排除）
-
-### 步驟 2：前往 Streamlit Cloud
-
-1. **開啟瀏覽器**
-   ```
-   https://share.streamlit.io/
-   ```
-
-2. **用 GitHub 帳號登入**
-   - 點 "Sign up"
-   - 選 "Continue with GitHub"
-   - 授權 Streamlit
-
-### 步驟 3：建立應用
-
-1. **點右上角**
-   ```
-   "Create app" 按鈕
-   ```
-
-2. **選擇部署方式**
-   ```
-   ✅ Deploy a public app from GitHub
-   ```
-
-3. **填入專案信息**
-   ```
-   Repository: ntu-pbc-hr-project/interview-scheduling-system
-   Branch: main
-   Main file path: streamlit_app.py
-   ```
-
-4. **點 "Deploy!"**
-   ```
-   等待 3-5 分鐘...
-   ```
-
-### 步驟 4：獲得網址
-
-部署完成後，你會看到：
-
-```
-✅ Your app is live at:
-https://interview-scheduling-system.streamlit.app
-```
-
-**就這樣！應用已上線！**
-
----
-
-## 📊 效果說明
-
-### ✅ 你能做什麼
-
-**在線上版本中，用戶可以：**
-
-1. **查看可用時段** ✅
-   - 看到所有主管的忙碌時間
-   - 看到計算出的可用時段
-   - 按日期瀏覽時段
-
-2. **選擇時段** ✅
-   - 點擊時段方塊
-   - 看到時段被高亮選中
-   - 反衝突檢測正常運作
-
-3. **界面交互** ✅
-   - 完整的 Streamlit UI
-   - 所有前端功能正常
-
-### ❌ 你不能做什麼
-
-**以下功能在線上版本受限：**
-
-| 功能 | 本地版 | 線上版 | 原因 |
-|------|--------|--------|------|
-| 建立 Google Calendar 邀請 | ✅ | ❌ | 缺 Google 凭証 |
-| 通知主管 | ✅ | ❌ | 缺 Google 凭証 |
-| 同步日曆 | ✅ | ❌ | 缺 Google 凭証 |
-| 查看邀請確認 | ✅ | ❌ | 缺 Google 凿証 |
-
-**按「確認預約」時會顯示：**
-```
-❌ 同步失敗
-```
-
----
-
-## ⚠️ 重要限制
-
-### 1️⃣ 敏感信息安全
-
-**為什麼不上傳 Google 凯證？**
-
-```
-credentials.json = 公司的 Google 帳號密鑰
-↓
-如果上傳到 GitHub → 任何人都能盜用
-↓
-危險！
-```
-
-**最佳實踐：**
-```
-敏感信息 ❌ 上傳到 GitHub
-敏感信息 ✅ 存放在部署環境的 Secrets
-```
-
-### 2️⃣ Streamlit 部署的侷限
-
-| 限制 | 詳情 |
-|------|------|
-| 無持久化存儲 | 應用重啟後，session 資料遺失 |
-| 無後端數據庫 | 預約記錄只存在 `bookings.json`（應用內存中） |
-| 冷啟動慢 | 第一次訪問需要 15-30 秒啟動 |
-| 免費額度有限 | 流量過高會被限制 |
-
-### 3️⃣ Google Calendar 集成限制
-
-線上版本**無法**：
-- 讀取實時日曆（使用固定的 `calendar_output.json`）
-- 寫入日曆邀請（缺 Google 凭証）
-- 自動更新忙碌時段
-
----
-
-## 🔧 完整功能：本地部署
-
-如果要使用 **所有功能**，必須在本地運行：
-
-```bash
-# 1. Clone 倉庫
-git clone https://github.com/ntu-pbc-hr-project/interview-scheduling-system.git
-cd interview-scheduling-system
-
-# 2. 安裝依賴
 pip install -r requirements.txt
 
-# 3. 配置 Google OAuth
-# 從 Google Cloud Console 下載 credentials.json
-# 放在專案目錄
+```
 
-# 4. 生成日曆數據
-python Calendar_FreeTime_Picker.py
+---
 
-# 5. 執行應用
+## 🔐 關鍵前置步驟：配置資安憑證與金鑰
+
+基於企業級資安防護規範，敏感私鑰已透過 `.gitignore` 安全隔離於本地。請先完成以下防呆設定：
+
+1. **Google sheets & Calendar API 身分證**：
+請將本地專案目錄下的 `credentials.json.example` 複製一份，並重新命名為 **`credentials.json`**，隨後填入您自 Google Cloud Console 申請的桌面版 OAuth 憑證金鑰。
+2. **AI 大腦與自動發信金鑰**：
+請打開 **`main.py`** 與 **`streamlit_app.py`**，於最上方的「核心環境參數設定區」精確填入您的 `GEMINI_API_KEY`（Gemini 官方金鑰）與 `GMAIL_APP_PASSWORD`（Gmail 16位字元應用程式密碼）。
+
+---
+
+## 🎬 實戰操作四步曲：全系統運作劇本
+
+*(期末報告、螢幕錄影展示請務必嚴格遵循此順序走位)*
+
+### 📡 步驟一：背景服務啟動 —— 抓取主管最新日曆空檔
+
+在開始處理任何應徵者前，系統必須先獲取用人主管的公務忙碌行程。
+
+```bash
+python Calendar_BusyTime_Picker.py
+
+```
+
+* **運行效果**：首次執行會自動跳出瀏覽器，請登入您測試用的 Google 帳號授權。
+* **產出結果**：系統會自動完成 UTC 轉 GMT+8 台灣時間並排除六日，於資料夾內自動生成最新的 `calendar_output.json`（主管忙碌快取資料庫）。
+
+### 🤖 步驟二：大腦啟動 —— AI 履歷掃描與自動化初篩評分
+
+請在 `resumes/` 資料夾內放入待處理的應徵者 PDF 履歷，隨後在終端機執行：
+
+```bash
+python main.py
+
+```
+
+* **操作選擇**：終端機會跳出選單，請手動輸入代號 **`1`**（讀取新履歷）。
+* **運行效果**：系統會調用 **Gemini 2.5 Flash** 嚴格審查履歷。針對未寫明網頁框架（Flask/FastAPI/Django）者執行一票否決（最高59分）；針對薪資超標者扣 15 分。分析完成後，會自動將姓名、學歷、年資、期望薪資、AI 評語即時同步填入雲端 Google Sheets 試算表中！
+
+### ⚖️ 步驟三：雲端後台審核 —— 主管人工決策與郵件自動分流
+
+請打開您的雲端 Google Sheets 試算表（應徵者追蹤表），進行線上模擬操作：
+
+1. **核准晉級（慢車道）**：找到 AI 評分為 60 分以上的應徵者，在其第 6 欄（主管核准）下拉選單勾選 **`TRUE`**。
+2. **啟動發信狀態機**：回到終端機，再次執行 `python main.py`，這次手動輸入代號 **`2`**（純郵件分流大掃描）。
+
+* **運行效果**：系統會精確辨識主管的打勾狀態。偵測到 `TRUE` 者，會自動調用 `yagmail` 發送一封精美的「官方技術面試邀約信」，信中自動附帶線上自主排程網址（`http://localhost:8501`）。同時，試算表狀態自動切換為 `已發面邀未回覆`，並押上最新異動時間（`action_at`）。
+
+### 📅 步驟四：雙前端網頁盛大登場 —— 應徵者排程與 HR 戰情室監控
+
+此步驟請**雙開終端機視窗**，同時啟動兩大 Streamlit 前後台網頁服務：
+
+#### 視窗 A：啟動【應徵者自主預約系統】（Port 8501）
+
+```bash
 streamlit run streamlit_app.py
+
 ```
 
-**本地版本功能：**
-- ✅ 查看時段
-- ✅ 確認預約
-- ✅ 建立 Google Calendar 邀請
-- ✅ 通知主管
-- ✅ 完整的 Google Calendar 同步
+* **演練走位**：求職者收到信後點擊進入此網頁，輸入對齊試算表的姓名與信箱。網頁會秒讀步驟一的 JSON 快取，畫出主管有空的時間方塊。
+* **確認預約**：求職者點擊確認當下，系統觸發防搶票即時衝突檢測。通過後，自動調用 `calendar_sync.py` **在主管日曆生成正式行程與藍色 Google Meet 線上會議連結**，自動發信通知三方，並將雲端試算表狀態動態更新為 `面試排程已確認`。
+
+#### 視窗 B：啟動【HR 招募決策戰情室】（Port 8502）
+
+```bash
+streamlit run dashboard.py --server.port 8502
+
+```
+
+* **演練走位**：此網頁專供 HR 高階主管進行 People Analytics 數據監控。網頁會即時動態串接試算表，渲染出精美的**招募漏斗（Recruitment Funnel）轉換率 KPI 卡**、由 `skills_extracted` 欄位動態拆解（Explode）而成的**市場前 15 大熱門技能供需地圖**。
+* **商業價值展示**：圖表會直觀揭示技術分佈，並透過「AI評分與期望薪資關係散佈圖」給出數據驅動的戰略警告：*高分即戰力人才（80分以上）因為期望薪資超出預算上限（NT$ 70,000），高機率會流失或婉拒，建議高層調整薪資架構。*
 
 ---
 
-## 📋 何時用哪個版本
+## 🧹 測試重置與環境擦拭工具
 
-### 用線上版本（Streamlit Cloud）
-- ✅ 演示項目給教授/客戶看
-- ✅ 展示界面和邏輯流程
-- ✅ 分享代碼給團隊審查
+為了方便團隊進行多輪反覆流暢測試，專案附帶了一鍵清理機制：
 
-### 用本地版本
-- ✅ 實際開發使用
-- ✅ 完整功能測試
-- ✅ 生產環境部署
+1. **日曆一鍵清空**：執行 `python clear_calendar_events.py`，輸入 `yes`，即可一鍵秒殺未來 90 天內所有在日曆上產生的 `【面試】` 測試行程，主管日曆瞬間回歸乾淨初始狀態。
+2. **試算表手動清空**：直接開啟 Google Sheets，將第 2 行以下的測試求職者欄位選取並按右鍵刪除，即可重新開始新一輪的系統展示。
 
 ---
 
-## 🔐 在 Streamlit Cloud 上啟用完整功能（進階）
+## 📊 跨環境部署對比摘要 (Environments Profile)
 
-如果想在線上版本也有 Google Calendar 功能，需要配置 Secrets：
+| 檔案 / 憑證 | 開發與演示環境 (本地電腦 💻) | 生產環境 (企業級伺服器 🏢) | 演示環境 (Streamlit Cloud ☁️) |
+| --- | --- | --- | --- |
+| `credentials.json` | ✅ 本地安全存放 | ✅ 伺服器加密存放 | ❌ 缺憑證 (因資安不上傳 GitHub) |
+| `token.json` | ✅ 本地讀取 (自動生成) | ✅ 伺服器長期授權 | ❌ 缺授權 |
+| `calendar_output.json` | ✅ 本地即時演算快取 | ✅ 伺服器異步更新 | ✅ 讀取靜態上傳之快取 |
+| **全系統功能狀態** | **🌟 100% 完全體功能（完全正常）** | **🌟 100% 完全體功能（完全正常）** | **⚠️ 部分功能（僅供展示前端介面與漏斗 UI）** |
 
-### 步驟 1：進入應用設定
-
-1. 前往 https://share.streamlit.io/
-2. 找到你的應用
-3. 點右上角 **⋮ → Settings**
-
-### 步驟 2：添加 Google OAuth 凭證
-
-1. 點 **"Secrets"** 標籤
-
-2. 添加你的 Google OAuth 信息：
-```
-[google_oauth]
-client_id = "你的_client_id.apps.googleusercontent.com"
-client_secret = "你的_client_secret"
-```
-
-3. 點 "Save"
-
-### 步驟 3：修改代碼（使用 Streamlit Secrets）
-
-編輯 `calendar_sync.py`，改為從 Secrets 讀取：
-
-```python
-import streamlit as st
-
-# 從 Streamlit Secrets 讀取
-secrets = st.secrets["google_oauth"]
-CLIENT_ID = secrets["client_id"]
-CLIENT_SECRET = secrets["client_secret"]
-```
-
-> **注意：** 這個步驟較複雜，需要修改多個文件。建議只在需要時才做。
-
----
-
-## 📈 各環境的設置對比
+> 📌 **給評審教授的備註**：由於 Streamlit Cloud 屬於公開第三方環境，基於企業資訊安全（Data Privacy）最佳實踐，我們拒絕將公司 API 密鑰上傳至雲端。因此線上版僅供 UI 體驗與靜態數據展示；**若要體驗自動化生成 Google Meet、發送實時郵件等端到端完整狀態機，請務必按照本指南於本地端運行。**
 
 ```
-開發環境（你的電腦）
-├─ credentials.json ✅（本地）
-├─ token.json ✅（本地，自動生成）
-├─ calendar_output.json ✅
-└─ 功能：完全正常
-
-生產環境（公司服務器）
-├─ credentials.json ✅（服務器安全存放）
-├─ token.json ✅（服務器安全存放）
-├─ calendar_output.json ✅
-└─ 功能：完全正常
-
-演示環境（Streamlit Cloud）
-├─ credentials.json ❌（未配置）
-├─ token.json ❌（未配置）
-├─ calendar_output.json ✅
-└─ 功能：部分（查看 + 選擇，無日曆同步）
-```
-
----
-
-## ✨ 總結
-
-| 需求 | 方案 |
-|------|------|
-| 要快速演示 | → 用線上版本（Streamlit Cloud） |
-| 要完整功能 | → 本地運行 |
-| 要生產部署 | → 公司服務器 + Google OAuth 配置 |
-
-這樣的設計符合：
-- ✅ 安全最佳實踐（敏感信息不上傳）
-- ✅ 業界標準（環境隔離）
-- ✅ 開發效率（快速原型 + 完整版本）
-
----
-
-## 📞 常見問題
-
-**Q：為什麼線上版本看不到時段？**
-A：確保 `calendar_output.json` 已推送到 GitHub。
-
-**Q：為什麼點確認預約會失敗？**
-A：正常的。線上版本沒有 Google 凯證，這是安全設計。
-
-**Q：怎樣才能在線上版本也建立日曆邀請？**
-A：配置 Streamlit Cloud Secrets（進階操作）。
-
-**Q：線上版本的數據會保存嗎？**
-A：不會。應用重啟後 session 資料遺失。需要數據庫才能持久化。
-
----
-
-**部署愉快！** 🚀

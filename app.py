@@ -53,7 +53,13 @@ except KeyError as e:
 def init_google_sheets():
     try:
         SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        creds_object = Credentials.from_service_account_file("creds.json", scopes=SCOPE)
+        # 🌟 雲端地雷解除：優先讀取雲端後台 Secrets，找不到才讀取本地實體檔案
+        if "gcp_service_account" in st.secrets:
+            creds_info = json.loads(st.secrets["gcp_service_account"])
+            creds_object = Credentials.from_service_account_info(creds_info, scopes=SCOPE)
+        else:
+            creds_object = Credentials.from_service_account_file("creds.json", scopes=SCOPE)
+            
         gs_client = gspread.authorize(creds_object)
         return gs_client.open("HR後台_應徵者追蹤表").sheet1
     except Exception as e:
@@ -459,7 +465,7 @@ with tab3:
                     continue
                 
                 if status == "AI評分完畢待發感謝信" and score < 60:
-                    time_info = " (時間解讀失敗)"
+                    time_info = " (時間解過失敗)"
                     try:
                         applied_time = datetime.strptime(applied_at_str, "%Y-%m-%d %H:%M")
                         target_send_time = applied_time + timedelta(days=2)
