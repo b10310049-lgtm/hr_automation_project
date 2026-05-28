@@ -567,7 +567,7 @@ with tab3:
                                 elif score >= 60 and manager_approve_str == "TRUE":
                                     st.write(f"🚀 [主管核准] 正在向 {name} 發送面試邀約...")
                                     subject = f"【面試邀約】商管程式設計 -「{job_title}」團隊面試邀請"
-                                    booking_url = f"http://localhost:8501/?name={name}&email={email}"
+                                    booking_url = f"https://ntupbc-interview-booking.streamlit.app/?name={name}&email={email}"
                                     body = f"""{name} 您好：<br><br>
 感謝您投遞本公司的「{job_title}」職缺。經主管深入評估您的專業背景與履歷後，我們誠摯地邀請您參與下一階段的線上面試！<br><br>
 為了配合技術主管的公務檔期，我們安排了線上預約系統，顯示主管未來三週的所有空閒時段，已即時同步更新至下方網頁中。<br><br>
