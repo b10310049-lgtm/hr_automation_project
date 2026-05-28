@@ -1,8 +1,11 @@
 streamlit
-pdfplumber
 gspread
-httpx
 yagmail
+pdfplumber
+httpx
 pandas
 plotly
 google-genai
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
