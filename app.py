@@ -19,6 +19,10 @@ from datetime import datetime, timedelta
 from google.oauth2.service_account import Credentials
 from google import genai
 
+# 🌟 新增：Google Drive API 必備套件
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+
 # ==================== 🛠️ 核心環境設定與快取 ====================
 st.set_page_config(page_title="HRIS 自動化招募戰情室", layout="wide", page_icon="👔")
 
@@ -129,14 +133,42 @@ def generate_rules_from_jd(jd_text):
         return f"⚠️ 規則生成失敗：{e}"
 
 def upload_file_and_get_link(file_path, file_name):
+    """將應徵者履歷直接上傳至企業 Google Drive，取得永久連結"""
     try:
-        with open(file_path, 'rb') as f:
-            files = {'file': (file_name, f, 'application/pdf')}
-            response = httpx.post('https://tmpfiles.org/api/v1/upload', files=files, timeout=30.0)
-            if response.status_code == 200:
-                return response.json()['data']['url'].replace('https://tmpfiles.org/', 'https://tmpfiles.org/dl/')
-            return "https://drive.google.com/resume/api_error"
-    except Exception:
+        SCOPE = ["https://www.googleapis.com/auth/drive"]
+        
+        # 1. 讀取 GCP 保險箱機密
+        if "gcp_service_account" in st.secrets:
+            creds_info = json.loads(st.secrets["gcp_service_account"])
+            creds = Credentials.from_service_account_info(creds_info, scopes=SCOPE)
+        else:
+            creds = Credentials.from_service_account_file("creds.json", scopes=SCOPE)
+            
+        # 2. 連線至 Google Drive API
+        drive_service = build('drive', 'v3', credentials=creds)
+        
+        # 3. 準備並執行上傳檔案
+        file_metadata = {'name': file_name}
+        media = MediaFileUpload(file_path, mimetype='application/pdf', resumable=True)
+        file = drive_service.files().create(
+            body=file_metadata, 
+            media_body=media, 
+            fields='id, webViewLink'
+        ).execute()
+        
+        file_id = file.get('id')
+        
+        # 4. 把這份履歷權限設為「知道連結的使用者皆可檢視」，避免 404
+        drive_service.permissions().create(
+            fileId=file_id,
+            body={'type': 'anyone', 'role': 'reader'}
+        ).execute()
+        
+        # 回傳永久觀看連結
+        return file.get('webViewLink')
+        
+    except Exception as e:
+        st.error(f"❌ Google Drive 上傳失敗：{e}")
         return "https://drive.google.com/resume/upload_failed"
 
 def score_resume(file_name, resume_text, jd_text, rules_text, target_job_title):
@@ -309,6 +341,7 @@ with tab1:
                     with open(temp_path, "wb") as f:
                         f.write(file.getbuffer())
                     
+                    # 使用更新後的 Google Drive 上傳函數
                     real_url = upload_file_and_get_link(temp_path, file.name)
                     
                     with pdfplumber.open(temp_path) as pdf:
@@ -395,7 +428,7 @@ with tab2:
                         df,
                         column_config={
                             "Sheet_Row": None, 
-                            "履歷連結": st.column_config.LinkColumn("履歷連結", display_text="點我下載履歷"),
+                            "履歷連結": st.column_config.LinkColumn("履歷連結", display_text="點我觀看履歷"),
                             "✅ 核准面試": st.column_config.CheckboxColumn("✅ 核准面試", default=False),
                             "AI 評分原因": st.column_config.TextColumn("AI 評分原因 (點擊查看)", width="large")
                         },
@@ -567,6 +600,7 @@ with tab3:
                                 elif score >= 60 and manager_approve_str == "TRUE":
                                     st.write(f"🚀 [主管核准] 正在向 {name} 發送面試邀約...")
                                     subject = f"【面試邀約】商管程式設計 -「{job_title}」團隊面試邀請"
+                                    # 🌟 已經更新為真實前台網址
                                     booking_url = f"https://ntupbc-interview-booking.streamlit.app/?name={name}&email={email}"
                                     body = f"""{name} 您好：<br><br>
 感謝您投遞本公司的「{job_title}」職缺。經主管深入評估您的專業背景與履歷後，我們誠摯地邀請您參與下一階段的線上面試！<br><br>
