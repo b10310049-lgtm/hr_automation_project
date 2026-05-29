@@ -147,8 +147,17 @@ def upload_file_and_get_link(file_path, file_name):
         # 2. 連線至 Google Drive API
         drive_service = build('drive', 'v3', credentials=creds)
         
-        # 3. 準備並執行上傳檔案
-        file_metadata = {'name': file_name}
+        # ==========================================
+        # 🛠️ 綁定指定的 Google Drive 共用資料夾 ID
+        # ==========================================
+        FOLDER_ID = "1JnNNiWzi2ZAT49DtD4wNJcaRNFFsPHm0"
+        
+        # 3. 準備並執行上傳檔案 (明確指定要存入哪個資料夾)
+        file_metadata = {
+            'name': file_name,
+            'parents': [FOLDER_ID]
+        }
+        
         media = MediaFileUpload(file_path, mimetype='application/pdf', resumable=True)
         file = drive_service.files().create(
             body=file_metadata, 
@@ -526,7 +535,7 @@ with tab3:
             col1, col2, col3 = st.columns(3)
             col1.metric("即將發送：AI 淘汰感謝信", len(names_reject))
             col2.metric("即將發送：主管核准面邀信", len(names_pending_invite))
-            col3.metric("即將發送：主管拒絕感謝信", len(names_manager_reject))
+            col3.metric("即將發送：主管拒巨大的感謝信", len(names_manager_reject))
             
             st.write("")
             col1_list, col2_list, col3_list = st.columns(3)
