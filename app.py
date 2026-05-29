@@ -13,15 +13,12 @@ import httpx
 import yagmail
 import pandas as pd
 import re
+import base64  # 🌟 新增：用於將檔案編碼傳輸給 Apps Script
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 from google.oauth2.service_account import Credentials
 from google import genai
-
-# 🌟 新增：Google Drive API 必備套件
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
 
 # ==================== 🛠️ 核心環境設定與快取 ====================
 st.set_page_config(page_title="HRIS 自動化招募戰情室", layout="wide", page_icon="👔")
@@ -57,7 +54,6 @@ except KeyError as e:
 def init_google_sheets():
     try:
         SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        # 🌟 雲端地雷解除：優先讀取雲端後台 Secrets，找不到才讀取本地實體檔案
         if "gcp_service_account" in st.secrets:
             creds_info = json.loads(st.secrets["gcp_service_account"])
             creds_object = Credentials.from_service_account_info(creds_info, scopes=SCOPE)
@@ -133,51 +129,36 @@ def generate_rules_from_jd(jd_text):
         return f"⚠️ 規則生成失敗：{e}"
 
 def upload_file_and_get_link(file_path, file_name):
-    """將應徵者履歷直接上傳至企業 Google Drive，取得永久連結"""
+    """透過 Google Apps Script 代理上傳，完美避開服務帳號 0 Bytes 容量限制"""
     try:
-        SCOPE = ["https://www.googleapis.com/auth/drive"]
-        
-        # 1. 讀取 GCP 保險箱機密
-        if "gcp_service_account" in st.secrets:
-            creds_info = json.loads(st.secrets["gcp_service_account"])
-            creds = Credentials.from_service_account_info(creds_info, scopes=SCOPE)
-        else:
-            creds = Credentials.from_service_account_file("creds.json", scopes=SCOPE)
-            
-        # 2. 連線至 Google Drive API
-        drive_service = build('drive', 'v3', credentials=creds)
-        
+        # 1. 讀取 PDF 檔案並轉為 Base64 編碼，以利 JSON 傳輸
+        with open(file_path, "rb") as f:
+            file_bytes = f.read()
+            encoded_file = base64.b64encode(file_bytes).decode('utf-8')
+
         # ==========================================
-        # 🛠️ 綁定指定的 Google Drive 共用資料夾 ID
+        # 🚨 請將下方的網址換成你剛剛部署的 Web App URL
         # ==========================================
-        FOLDER_ID = "1JnNNiWzi2ZAT49DtD4wNJcaRNFFsPHm0"
-        
-        # 3. 準備並執行上傳檔案 (明確指定要存入哪個資料夾)
-        file_metadata = {
-            'name': file_name,
-            'parents': [FOLDER_ID]
+        WEB_APP_URL = "https://script.google.com/macros/s/AKfycby-S7IkPT5pPhxpOUZaY6HgYHd3kQKZFt1m1K3uB5tjwPG8afQF4MHXysT3RUi3XCS-7A/exec"
+
+        payload = {
+            "fileName": file_name,
+            "mimeType": "application/pdf",
+            "fileData": encoded_file
         }
-        
-        media = MediaFileUpload(file_path, mimetype='application/pdf', resumable=True)
-        file = drive_service.files().create(
-            body=file_metadata, 
-            media_body=media, 
-            fields='id, webViewLink'
-        ).execute()
-        
-        file_id = file.get('id')
-        
-        # 4. 把這份履歷權限設為「知道連結的使用者皆可檢視」，避免 404
-        drive_service.permissions().create(
-            fileId=file_id,
-            body={'type': 'anyone', 'role': 'reader'}
-        ).execute()
-        
-        # 回傳永久觀看連結
-        return file.get('webViewLink')
-        
+
+        # 3. 發送 JSON POST 請求給你的專屬機器人
+        response = httpx.post(WEB_APP_URL, json=payload, timeout=60.0)
+
+        if response.status_code == 200 and "Error" not in response.text:
+            # 成功回傳永久連結
+            return response.text.strip()
+        else:
+            st.error(f"❌ 代理上傳回傳錯誤：{response.text}")
+            return "https://drive.google.com/resume/upload_failed"
+
     except Exception as e:
-        st.error(f"❌ Google Drive 上傳失敗：{e}")
+        st.error(f"❌ 代理上傳失敗：{e}")
         return "https://drive.google.com/resume/upload_failed"
 
 def score_resume(file_name, resume_text, jd_text, rules_text, target_job_title):
@@ -350,7 +331,7 @@ with tab1:
                     with open(temp_path, "wb") as f:
                         f.write(file.getbuffer())
                     
-                    # 使用更新後的 Google Drive 上傳函數
+                    # 使用更新後的代理機器人上傳函數
                     real_url = upload_file_and_get_link(temp_path, file.name)
                     
                     with pdfplumber.open(temp_path) as pdf:
@@ -535,7 +516,7 @@ with tab3:
             col1, col2, col3 = st.columns(3)
             col1.metric("即將發送：AI 淘汰感謝信", len(names_reject))
             col2.metric("即將發送：主管核准面邀信", len(names_pending_invite))
-            col3.metric("即將發送：主管拒巨大的感謝信", len(names_manager_reject))
+            col3.metric("即將發送：主管拒絕的感謝信", len(names_manager_reject))
             
             st.write("")
             col1_list, col2_list, col3_list = st.columns(3)
