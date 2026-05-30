@@ -148,7 +148,7 @@ def upload_file_and_get_link(file_path, file_name):
         }
 
         # 3. 發送 JSON POST 請求給你的專屬機器人
-        response = httpx.post(WEB_APP_URL, json=payload, timeout=60.0)
+        response = httpx.post(WEB_APP_URL, json=payload, timeout=60.0, follow_redirects=True)
 
         if response.status_code == 200 and "Error" not in response.text:
             # 成功回傳永久連結
