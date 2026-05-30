@@ -174,8 +174,14 @@ def score_resume(file_name, resume_text, jd_text, rules_text, target_job_title):
     【應徵者履歷】: 
     {resume_text}
     
-    【自訂評分嚴格度與扣分規則指引（滿分 100 分，得分不能超過100分）】：
+    【自訂評分嚴格度與扣分規則指引】：
     {rules_text}
+    
+    【⚠️ 嚴格評分運算邏輯 (極度重要)】：
+    1. 評分預設基準分數為 70 分（而非 100 分）。
+    2. 請嚴格檢視履歷內容，逐條比對上方的「扣分規則」與「加分規則」，執行真實的數學加減法。
+    3. 若應徵者的【期待薪資】明確高於 JD 預算或超出合理範圍，必須強制執行扣分，絕不能給滿分。
+    4. 你必須在 JSON 內的 "score_calculation" 欄位寫下具體的「加減分算式過程」，最後才給出最終 "score"（最高 100 分）。
     
     請嚴格回覆以下 JSON，不要包含 Markdown tags：
     {{
@@ -183,7 +189,8 @@ def score_resume(file_name, resume_text, jd_text, rules_text, target_job_title):
         "job_applied": "{target_job_title}",
         "name": "應徵者姓名",
         "email": "從履歷中擷取的信箱",
-        "score": 分數,
+        "score_calculation": "評分運算過程，例如：基準70分 + 具備Python加10分 - 薪資超標扣15分 = 65分",
+        "score": 分數數字,
         "applied_at": "{current_now_str}",
         "action_at": "{current_now_str}",
         "interview_at": "",
@@ -192,7 +199,7 @@ def score_resume(file_name, resume_text, jd_text, rules_text, target_job_title):
         "total_experience_years": 總年資數字,
         "expected_salary": 期待月薪數字,
         "skills_extracted": "技能標籤",
-        "score_reason": "給分原因短評 (30-50字)",
+        "score_reason": "給分原因短評 (30-50字，須包含薪資是否超標的評估)",
         "resume": "網址佔位符"
     }}
     """
