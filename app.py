@@ -139,7 +139,7 @@ def upload_file_and_get_link(file_path, file_name):
         # ==========================================
         # 🚨 請將下方的網址換成你剛剛部署的 Web App URL
         # ==========================================
-        WEB_APP_URL = "https://script.google.com/macros/s/AKfycby-S7IkPT5pPhxpOUZaY6HgYHd3kQKZFt1m1K3uB5tjwPG8afQF4MHXysT3RUi3XCS-7A/exec"
+        WEB_APP_URL = "https://script.google.com/macros/s/AKfycby2aeYJ-fBoJ-Fc7RaeibP2fx83Jg9nvh27ABvDDx2x-I0QFaLt4m2oRi4ZYFs6CGDp/exec"
 
         payload = {
             "fileName": file_name,
